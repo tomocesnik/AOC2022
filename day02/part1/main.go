@@ -1,8 +1,8 @@
 package main
 
 import (
-	util01 "aoc2022/day01/util"
-	util02 "aoc2022/day02/util"
+	"aoc2022/day02/common"
+	"aoc2022/util"
 	"fmt"
 	"log"
 	"strings"
@@ -10,29 +10,29 @@ import (
 
 const inputFile = "../input.txt"
 
-func parseSecondColumn(identifier string) util02.RpsMove {
+func parseSecondColumn(identifier string) common.RpsMove {
 	switch identifier {
 	case "X":
-		return util02.Rock
+		return common.Rock
 	case "Y":
-		return util02.Paper
+		return common.Paper
 	case "Z":
-		return util02.Scissors
+		return common.Scissors
 	}
 	log.Fatal("No mapping for value: " + identifier)
-	return util02.Rock
+	return common.Rock
 }
 
-func calcRoundResult(mv1 util02.RpsMove, mv2 util02.RpsMove) util02.RpsResult {
-	return util02.RpsResult((int(mv2) - int(mv1) + 1 + 3) % 3)
+func calcRoundResult(mv1 common.RpsMove, mv2 common.RpsMove) common.RpsResult {
+	return common.RpsResult((int(mv2) - int(mv1) + 1 + 3) % 3)
 }
 
 func main() {
-	lines := util01.ReadFileLinesAsArray(inputFile)
+	lines := util.ReadFileLinesAsArray(inputFile)
 	sum := 0
 	for _, line := range lines {
 		identifiers := strings.Split(line, " ")
-		opMove := util02.ParseMove(identifiers[0])
+		opMove := common.ParseMove(identifiers[0])
 		meMove := parseSecondColumn(identifiers[1])
 		result := calcRoundResult(opMove, meMove)
 		sum += meMove.GetScore() + result.GetScore()
