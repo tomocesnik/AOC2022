@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 )
 
 func ReadFileLinesAsArray(fileName string) []string {
@@ -25,6 +26,14 @@ func ReadFileLinesAsArray(fileName string) []string {
 	}
 	file.Close()
 	return fileLines
+}
+
+func StringToNum(str string) int {
+	num, err := strconv.Atoi(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return num
 }
 
 func MinNumberInArray(arr []int) (int, int) {
