@@ -1,7 +1,13 @@
 go 1.19
 
 use util
+
 use day01
+
 use day02
+
 use day03
+
 use day04
+
+use day05
