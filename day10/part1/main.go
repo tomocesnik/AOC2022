@@ -12,13 +12,9 @@ const inputFile = "../input.txt"
 func simulateCpu(lines []string) []int {
 	regValue := 1
 	cycle := 1
-	cmdIdx := 0
 	var importantSignalVals []int
 
-	for cmdIdx < len(lines) {
-		line := lines[cmdIdx]
-		cmdIdx++
-
+	for _, line := range lines {
 		moveCycles := common.CyclesNoop
 		var afterCycleCb func() = nil
 

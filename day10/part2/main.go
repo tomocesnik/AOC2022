@@ -14,14 +14,10 @@ const terminalWidth = 40
 func simulateCpu(lines []string) []strings.Builder {
 	regValue := 1
 	cycle := 1
-	cmdIdx := 0
 	var strBuffers []strings.Builder
 	var strBuffer *strings.Builder
 
-	for cmdIdx < len(lines) {
-		line := lines[cmdIdx]
-		cmdIdx++
-
+	for _, line := range lines {
 		moveCycles := common.CyclesNoop
 		var afterCycleCb func() = nil
 
