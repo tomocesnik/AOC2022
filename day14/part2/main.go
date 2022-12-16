@@ -40,7 +40,7 @@ func createMinSegmentFinder(max int) func(common.SolidSegmentsList, int) (*commo
 }
 
 func main() {
-	sourceCoord := common.Coordinate{X: 500, Y: 0}
+	sourceCoord := util.Coordinate{X: 500, Y: 0}
 	lines := util.ReadFileLinesAsArray(inputFile)
 	vSegments, hSegments := common.ParseSolidSegments(lines)
 	world := common.ConstructWorld(vSegments, hSegments)

@@ -67,3 +67,8 @@ func SumArray(arr []int) int {
 	}
 	return sum
 }
+
+type Coordinate struct {
+	X int
+	Y int
+}

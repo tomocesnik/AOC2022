@@ -14,11 +14,6 @@ type SolidSegment struct {
 	MaxB int
 }
 
-type Coordinate struct {
-	X int
-	Y int
-}
-
 type SolidSegmentsList []SolidSegment
 
 type World map[int]SolidSegmentsList
@@ -29,12 +24,12 @@ func ParseSolidSegments(lines []string) ([]SolidSegment, []SolidSegment) {
 
 	for _, line := range lines {
 		coordsStrs := strings.Split(line, " -> ")
-		var coordinates []Coordinate
+		var coordinates []util.Coordinate
 		for _, cs := range coordsStrs {
 			coordsParts := strings.Split(cs, ",")
 			coordX := util.StringToNum(coordsParts[0])
 			coordY := util.StringToNum(coordsParts[1])
-			coordinates = append(coordinates, Coordinate{coordX, coordY})
+			coordinates = append(coordinates, util.Coordinate{X: coordX, Y: coordY})
 		}
 
 		for i := 0; i < len(coordinates)-1; i++ {
@@ -127,8 +122,8 @@ func union(ss1 SolidSegment, ss2 SolidSegment) SolidSegment {
 	return SolidSegment{ss1.PosA, min, max}
 }
 
-func SimulateSand(sourceCoord Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) []Coordinate {
-	var sandCoords []Coordinate
+func SimulateSand(sourceCoord util.Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) []util.Coordinate {
+	var sandCoords []util.Coordinate
 	for {
 		// PrintWorld(world, sandCoords)
 		restCoord, _ := simulateSandUnit(sourceCoord, world, minSegmentFinder)
@@ -141,21 +136,21 @@ func SimulateSand(sourceCoord Coordinate, world World, minSegmentFinder func(Sol
 	return sandCoords
 }
 
-func simulateSandUnit(coord Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) (*Coordinate, bool) {
+func simulateSandUnit(coord util.Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) (*util.Coordinate, bool) {
 	xvsss := world[coord.X]
 	vss, found := minSegmentFinder(xvsss, coord.Y)
 	if vss == nil {
 		return nil, !found
 	}
 
-	restCoordLeft, rDone := simulateSandUnit(Coordinate{coord.X - 1, vss.MinB}, world, minSegmentFinder)
+	restCoordLeft, rDone := simulateSandUnit(util.Coordinate{X: coord.X - 1, Y: vss.MinB}, world, minSegmentFinder)
 	if rDone {
 		return nil, true
 	}
 	if restCoordLeft != nil {
 		return restCoordLeft, false
 	}
-	restCoordRight, lDone := simulateSandUnit(Coordinate{coord.X + 1, vss.MinB}, world, minSegmentFinder)
+	restCoordRight, lDone := simulateSandUnit(util.Coordinate{X: coord.X + 1, Y: vss.MinB}, world, minSegmentFinder)
 	if lDone {
 		return nil, true
 	}
@@ -168,10 +163,10 @@ func simulateSandUnit(coord Coordinate, world World, minSegmentFinder func(Solid
 	if !found {
 		world[coord.X] = append(world[coord.X], *vss)
 	}
-	return &Coordinate{coord.X, vss.MinB}, false
+	return &util.Coordinate{X: coord.X, Y: vss.MinB}, false
 }
 
-func PrintWorld(world World, sandCoords []Coordinate) {
+func PrintWorld(world World, sandCoords []util.Coordinate) {
 	minX := math.MaxInt
 	maxX := 0
 	maxY := 0
@@ -199,7 +194,7 @@ func PrintWorld(world World, sandCoords []Coordinate) {
 				}
 			}
 			for _, sc := range sandCoords {
-				impostorCoord := Coordinate{j, i}
+				impostorCoord := util.Coordinate{X: j, Y: i}
 				if sc == impostorCoord {
 					char = "o"
 				}
