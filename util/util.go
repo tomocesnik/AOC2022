@@ -102,34 +102,40 @@ func axisAlignedLinesComparator(aals AxisAlignedLines) func(i, j int) bool {
 }
 
 func (aals AxisAlignedLines) Optimize() AxisAlignedLines {
-	newAals := aals
-	newAals.Sort()
+	aalsCopy := aals
+	aalsCopy.Sort()
 
-	var ssList AxisAlignedLines
-	var ss AxisAlignedLine
-	for i, vss := range newAals {
+	var optimizedAals AxisAlignedLines
+	var currentAal AxisAlignedLine
+	for i, aal := range aalsCopy {
 		if i == 0 {
-			ss = vss
+			currentAal = aal
 			continue
 		}
 
-		if doIntersect(ss, vss) {
-			ss = union(ss, vss)
+		if DoIntersect(currentAal, aal) {
+			currentAal = Union(currentAal, aal)
 		} else {
-			ssList = append(ssList, ss)
-			ss = vss
+			optimizedAals = append(optimizedAals, currentAal)
+			currentAal = aal
 		}
 	}
-	ssList = append(ssList, ss)
-	return ssList
+	optimizedAals = append(optimizedAals, currentAal)
+	return optimizedAals
 }
 
-func doIntersect(ss1 AxisAlignedLine, ss2 AxisAlignedLine) bool {
-	return (ss1.Max >= ss2.Min) && (ss2.Max >= ss1.Min)
+func DoIntersect(aal1 AxisAlignedLine, aal2 AxisAlignedLine) bool {
+	return (aal1.Max >= aal2.Min) && (aal2.Max >= aal1.Min)
 }
 
-func union(ss1 AxisAlignedLine, ss2 AxisAlignedLine) AxisAlignedLine {
-	min := int(math.Min(float64(ss1.Min), float64(ss2.Min)))
-	max := int(math.Max(float64(ss1.Max), float64(ss2.Max)))
-	return AxisAlignedLine{ss1.Pos, min, max}
+func Union(aal1 AxisAlignedLine, aal2 AxisAlignedLine) AxisAlignedLine {
+	min := int(math.Min(float64(aal1.Min), float64(aal2.Min)))
+	max := int(math.Max(float64(aal1.Max), float64(aal2.Max)))
+	return AxisAlignedLine{aal1.Pos, min, max}
+}
+
+func Intersection(aal1 AxisAlignedLine, aal2 AxisAlignedLine) AxisAlignedLine {
+	min := int(math.Max(float64(aal1.Min), float64(aal2.Min)))
+	max := int(math.Min(float64(aal1.Max), float64(aal2.Max)))
+	return AxisAlignedLine{aal1.Pos, min, max}
 }
