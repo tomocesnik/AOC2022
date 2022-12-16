@@ -4,23 +4,14 @@ import (
 	"aoc2022/util"
 	"fmt"
 	"math"
-	"sort"
 	"strings"
 )
 
-type SolidSegment struct {
-	PosA int
-	MinB int
-	MaxB int
-}
+type World map[int]util.AxisAlignedLines
 
-type SolidSegmentsList []SolidSegment
-
-type World map[int]SolidSegmentsList
-
-func ParseSolidSegments(lines []string) ([]SolidSegment, []SolidSegment) {
-	var verticalSegments []SolidSegment
-	var horizontalSegments []SolidSegment
+func ParseSolidSegments(lines []string) (util.AxisAlignedLines, util.AxisAlignedLines) {
+	var verticalSegments util.AxisAlignedLines
+	var horizontalSegments util.AxisAlignedLines
 
 	for _, line := range lines {
 		coordsStrs := strings.Split(line, " -> ")
@@ -42,7 +33,7 @@ func ParseSolidSegments(lines []string) ([]SolidSegment, []SolidSegment) {
 					min = coord2.Y
 					max = coord1.Y
 				}
-				verticalSegments = append(verticalSegments, SolidSegment{coord1.X, min, max})
+				verticalSegments = append(verticalSegments, util.AxisAlignedLine{Pos: coord1.X, Min: min, Max: max})
 			} else if coord1.Y == coord2.Y {
 				min := coord1.X
 				max := coord2.X
@@ -50,7 +41,7 @@ func ParseSolidSegments(lines []string) ([]SolidSegment, []SolidSegment) {
 					min = coord2.X
 					max = coord1.X
 				}
-				horizontalSegments = append(horizontalSegments, SolidSegment{coord1.Y, min, max})
+				horizontalSegments = append(horizontalSegments, util.AxisAlignedLine{Pos: coord1.Y, Min: min, Max: max})
 			}
 		}
 	}
@@ -58,71 +49,25 @@ func ParseSolidSegments(lines []string) ([]SolidSegment, []SolidSegment) {
 	return verticalSegments, horizontalSegments
 }
 
-func (list SolidSegmentsList) Len() int {
-	return len(list)
-}
-
-func (list SolidSegmentsList) Less(i, j int) bool {
-	if list[i].MinB < list[j].MinB {
-		return true
-	} else if list[i].MinB == list[j].MinB {
-		return list[i].MaxB < list[j].MaxB
-	}
-	return false
-}
-
-func (list SolidSegmentsList) Swap(i, j int) {
-	list[i], list[j] = list[j], list[i]
-}
-
-func ConstructWorld(verticalSegments []SolidSegment, horizontalSegments []SolidSegment) World {
+func ConstructWorld(verticalSegments util.AxisAlignedLines, horizontalSegments util.AxisAlignedLines) World {
 	world := make(World)
 	for _, vs := range verticalSegments {
-		world[vs.PosA] = append(world[vs.PosA], vs)
+		world[vs.Pos] = append(world[vs.Pos], vs)
 	}
 
 	for _, hs := range horizontalSegments {
-		for i := hs.MinB; i <= hs.MaxB; i++ {
-			world[i] = append(world[i], SolidSegment{i, hs.PosA, hs.PosA})
+		for i := hs.Min; i <= hs.Max; i++ {
+			world[i] = append(world[i], util.AxisAlignedLine{Pos: i, Min: hs.Pos, Max: hs.Pos})
 		}
 	}
 
 	for k, v := range world {
-		sort.Sort(v)
-
-		var ssList SolidSegmentsList
-		var ss SolidSegment
-		for i, vss := range v {
-			if i == 0 {
-				ss = vss
-				continue
-			}
-
-			if doIntersect(ss, vss) {
-				ss = union(ss, vss)
-			} else {
-				ssList = append(ssList, ss)
-				ss = vss
-			}
-		}
-		ssList = append(ssList, ss)
-
-		world[k] = ssList
+		world[k] = v.Optimize()
 	}
 	return world
 }
 
-func doIntersect(ss1 SolidSegment, ss2 SolidSegment) bool {
-	return (ss1.MaxB >= ss2.MinB) && (ss2.MaxB >= ss1.MinB)
-}
-
-func union(ss1 SolidSegment, ss2 SolidSegment) SolidSegment {
-	min := int(math.Min(float64(ss1.MinB), float64(ss2.MinB)))
-	max := int(math.Max(float64(ss1.MaxB), float64(ss2.MaxB)))
-	return SolidSegment{ss1.PosA, min, max}
-}
-
-func SimulateSand(sourceCoord util.Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) []util.Coordinate {
+func SimulateSand(sourceCoord util.Coordinate, world World, minSegmentFinder func(util.AxisAlignedLines, int) (*util.AxisAlignedLine, bool)) []util.Coordinate {
 	var sandCoords []util.Coordinate
 	for {
 		// PrintWorld(world, sandCoords)
@@ -136,21 +81,21 @@ func SimulateSand(sourceCoord util.Coordinate, world World, minSegmentFinder fun
 	return sandCoords
 }
 
-func simulateSandUnit(coord util.Coordinate, world World, minSegmentFinder func(SolidSegmentsList, int) (*SolidSegment, bool)) (*util.Coordinate, bool) {
+func simulateSandUnit(coord util.Coordinate, world World, minSegmentFinder func(util.AxisAlignedLines, int) (*util.AxisAlignedLine, bool)) (*util.Coordinate, bool) {
 	xvsss := world[coord.X]
 	vss, found := minSegmentFinder(xvsss, coord.Y)
 	if vss == nil {
 		return nil, !found
 	}
 
-	restCoordLeft, rDone := simulateSandUnit(util.Coordinate{X: coord.X - 1, Y: vss.MinB}, world, minSegmentFinder)
+	restCoordLeft, rDone := simulateSandUnit(util.Coordinate{X: coord.X - 1, Y: vss.Min}, world, minSegmentFinder)
 	if rDone {
 		return nil, true
 	}
 	if restCoordLeft != nil {
 		return restCoordLeft, false
 	}
-	restCoordRight, lDone := simulateSandUnit(util.Coordinate{X: coord.X + 1, Y: vss.MinB}, world, minSegmentFinder)
+	restCoordRight, lDone := simulateSandUnit(util.Coordinate{X: coord.X + 1, Y: vss.Min}, world, minSegmentFinder)
 	if lDone {
 		return nil, true
 	}
@@ -159,11 +104,11 @@ func simulateSandUnit(coord util.Coordinate, world World, minSegmentFinder func(
 	}
 
 	// grow segment by 1
-	vss.MinB = vss.MinB - 1
+	vss.Min = vss.Min - 1
 	if !found {
 		world[coord.X] = append(world[coord.X], *vss)
 	}
-	return &util.Coordinate{X: coord.X, Y: vss.MinB}, false
+	return &util.Coordinate{X: coord.X, Y: vss.Min}, false
 }
 
 func PrintWorld(world World, sandCoords []util.Coordinate) {
@@ -178,8 +123,8 @@ func PrintWorld(world World, sandCoords []util.Coordinate) {
 			maxX = k
 		}
 		for _, ss := range v {
-			if ss.MaxB > maxY {
-				maxY = ss.MaxB
+			if ss.Max > maxY {
+				maxY = ss.Max
 			}
 		}
 	}
@@ -189,7 +134,7 @@ func PrintWorld(world World, sandCoords []util.Coordinate) {
 			ssl := world[j]
 			char := "."
 			for _, ss := range ssl {
-				if (i >= ss.MinB) && (i <= ss.MaxB) {
+				if (i >= ss.Min) && (i <= ss.Max) {
 					char = "#"
 				}
 			}

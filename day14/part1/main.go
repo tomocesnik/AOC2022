@@ -8,14 +8,14 @@ import (
 
 const inputFile = "../input.txt"
 
-func createMinSegmentFinder() func(common.SolidSegmentsList, int) (*common.SolidSegment, bool) {
-	return func(solidSegments common.SolidSegmentsList, minLimit int) (*common.SolidSegment, bool) {
+func createMinSegmentFinder() func(util.AxisAlignedLines, int) (*util.AxisAlignedLine, bool) {
+	return func(solidSegments util.AxisAlignedLines, minLimit int) (*util.AxisAlignedLine, bool) {
 		for idx := range solidSegments {
 			ss := &solidSegments[idx]
-			if ss.MinB > minLimit {
+			if ss.Min > minLimit {
 				return ss, true
 			}
-			if ss.MaxB >= minLimit {
+			if ss.Max >= minLimit {
 				return nil, true
 			}
 		}
