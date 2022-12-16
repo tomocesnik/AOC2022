@@ -27,20 +27,6 @@ func createDividerPacket(num int) common.PacketNode {
 	return elementPacket
 }
 
-type packetList []common.PacketNode
-
-func (list packetList) Len() int {
-	return len(list)
-}
-
-func (list packetList) Less(i, j int) bool {
-	return common.ComparePackets(list[i], list[j]) != common.More
-}
-
-func (list packetList) Swap(i, j int) {
-	list[i], list[j] = list[j], list[i]
-}
-
 func findPacket(packet common.PacketNode, packets []common.PacketNode) int {
 	for i, pkt := range packets {
 		if common.ComparePackets(pkt, packet) == common.Same {
@@ -57,7 +43,9 @@ func main() {
 	divPkt2 := createDividerPacket(2)
 	divPkt6 := createDividerPacket(6)
 	packets = append(packets, divPkt2, divPkt6)
-	sort.Sort(packetList(packets))
+	sort.Slice(packets, func(i, j int) bool {
+		return common.ComparePackets(packets[i], packets[j]) != common.More
+	})
 	idx2 := findPacket(divPkt2, packets) + 1
 	idx6 := findPacket(divPkt6, packets) + 1
 	fmt.Println(idx2 * idx6)
