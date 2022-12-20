@@ -10,6 +10,10 @@ type Coordinate struct {
 	Y int
 }
 
+func (c Coordinate) Sum(other Coordinate) Coordinate {
+	return Coordinate{X: c.X + other.X, Y: c.Y + other.Y}
+}
+
 func ManhattanDistance(c1 Coordinate, c2 Coordinate) int {
 	return int(math.Abs(float64(c1.X-c2.X)) + math.Abs(float64(c1.Y-c2.Y)))
 }
